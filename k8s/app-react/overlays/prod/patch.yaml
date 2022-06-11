@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web-react
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: web-react
+  template:
+    spec:
+      containers:
+        - name: app
+          ports:
+            - containerPort: 80
+          readinessProbe:
+            tcpSocket:
+              port: 80
+            initialDelaySeconds: 3
+            periodSeconds: 5
+          livenessProbe:
+            tcpSocket:
+              port: 80
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          imagePullPolicy: Always
+          env:
+            - name: OAUTH_API_URL
+              value: api-oauth.prod.svc.cluster.local
+            - name: PUBLIC_CLIENT_SERVICE_ORIGIN
+              value: prod.abc.io
+            - name: BASIC_TOKEN
+              value: "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+            - name: REACT_APP_ENV
+              value: prod
+          resources:
+            requests:
+              memory: 56Mi
+            limits:
+              memory: 56Mi
+      nodeSelector:
+        deploy-env: prod
+        role: worker

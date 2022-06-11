@@ -1,0 +1,409 @@
+affinity: {}
+
+# ArgoCD dashboard url; used in place of {{.context.argocdUrl}} in templates
+argocdUrl: https://argo.luckypenny.io
+dockerPackageUrl: https://github.com/luckypenny/
+#dockerPackageUrl: https://github.com/luckypenny/client-react/packages/?q=client-react
+
+fullnameOverride: ""
+
+image:
+  repository: argoprojlabs/argocd-notifications
+  tag: v0.7.0
+  pullPolicy: IfNotPresent
+
+imagePullSecrets: []
+
+nameOverride: "argocd-notifications"
+
+nodeSelector:
+  role: management
+
+updateStrategy:
+  type: Recreate
+
+secret:
+  # Whether helm chart creates controller secret
+  create: true
+
+  notifiers:
+    # For more information: https://argoproj-labs.github.io/argocd-notifications/services/overview/
+
+    slack:
+      # For more information: https://argoproj-labs.github.io/argocd-notifications/services/slack/
+
+      # Specifies whether Slack notifier should be configured
+      enabled: true
+      # OAuth Access Token (MCS Argocd-B0t)
+      token: xoxb-286847958528-1322735334727-xxxxxxxxxxxx
+
+      # Optional override username
+      username:
+      # Optional override icon
+      icon:
+      # Optional override signingSecret: https://argoproj-labs.github.io/argocd-notifications/recipients/slack-bot/
+      signingSecret:
+
+    grafana:
+      # For more information: https://argoproj-labs.github.io/argocd-notifications/services/grafana/
+
+      # Specifies whether Grafana notifier should be configured
+      enabled: false
+      # Grafana api endpoint; for example: https://grafana.example.com/api
+      apiUrl:
+      # Grafana api key
+      apiKey:
+
+    webhooks: {}
+      # For more information: https://argoproj-labs.github.io/argocd-notifications/services/webhook/
+      # mywebhook:
+      #   url: http://example.com
+      #   headers:
+      #     - name: headerName
+      #       value: headerValue
+      #   basicAuth:
+      #     username: username
+      #     password: mypassword
+      # mywebhook2:
+      #   url: http://example.com
+      #   headers:
+      #     - name: headerName
+      #       value: headerValue
+      #   basicAuth:
+      #     username: username
+    #     password: mypassword
+
+    email:
+      # For more information: https://argoproj-labs.github.io/argocd-notifications/services/overview/
+
+      # Specifies whether email notifier should be configured
+      enabled: false
+      # SMTP endpoint
+      host:
+      # SMTP port
+      port:
+      # enable/disable check on TLS certificate
+      insecure_skip_verify:
+      # SMTP username
+      username:
+      # SMTP password
+      password:
+      # email address in from field
+      from:
+
+logLevel: info
+
+extraArgs: []
+
+metrics:
+  enabled: false
+  port: 9001
+  serviceMonitor:
+    enabled: false
+    additionalLabels: {}
+    # namespace: management
+    # interval: 30s
+    # scrapeTimeout: 10s
+
+podAnnotations: {}
+
+resources: {}
+  # limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+  # requests:
+  #   cpu: 100m
+#   memory: 128Mi
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: argocd-notifications-controller
+
+subscriptions:
+  # Assignment of recipients by notification channel to triggers in several forms:
+  #
+  # global subscription for all type of notifications
+  # - recipients:
+  #     - slack:test1
+  #     - webhook:github
+  #
+  # subscription for on-sync-status-unknown trigger notifications
+  # - recipients:
+  #     - slack:test2
+  #     - email:test@gmail.com
+  #   trigger: on-sync-status-unknown
+  #
+  # global subscription restricted to applications with matching labels only
+  # - recipients:
+  #     - slack:test3
+  #   selector: test=true
+  #
+  # For more information: https://argoproj-labs.github.io/argocd-notifications/triggers_and_templates/
+
+  # 각 환경별 채널 설정 (selector environment는 Argo deployment Labels에 선언해야 합니다.)
+  - recipients:
+      - slack:argo_prod
+    selector: environment=prod
+
+templates:
+  # For more information: https://argoproj-labs.github.io/argocd-notifications/triggers_and_templates/
+  - name: test
+    title: Application {{.app.metadata.name}} sync status is {{.app.status.sync.status}}
+    body: |
+      App {{.app.metadata.name}} is {{.app.status.sync.status}}.
+      Commit Message : {{(call .repo.GetCommitMetadata .app.status.sync.revision).Message}}
+      Commit Author: {{(call .repo.GetCommitMetadata .app.status.sync.revision).Author}}
+      Api Version : {{.app.apiVersion}}
+      App Kind : {{.app.kind}}
+      Creation Time : {{.app.metadata.creationTimestamp}}
+      Namespace : {{.app.spec.destination.namespace}}
+      Server : {{.app.spec.destination.server}}
+      Project : {{.app.spec.project}}
+      source path : {{.app.spec.source.path}}
+      source repoURL : {{.app.spec.source.repoURL}}
+      source targetRevision : {{.app.spec.source.targetRevision}}
+      status : {{.app.status.health.status}}
+      operationState.message : {{.app.status.operationState.message}}
+      operationState.startedAt : {{.app.status.operationState.startedAt}}
+      operationState.finishedAt : {{.app.status.operationState.finishedAt}}
+      operationState.message : {{.app.status.operationState.message}}
+      opertationState.operation.phase : {{.app.status.opertationState.operation.phase}}
+      opertationState.operation.phase : {{.app.status.opertationState.reconciledAt}}
+      Images : {{.app.status.summary.images}}
+    slack:
+      attachments: |
+        [{
+          "title": "[ {{.app.metadata.name}} ]",
+          "title_link": "{{.context.argocdUrl}}/applications/{{.app.metadata.name}}",
+          "color": "#18be52",
+          "fields": [{
+            "title": "Status",
+            "value": "{{.app.status.sync.status}}",
+            "short": true
+          }, {
+            "title": "Details",
+            "value": "{{.context.argocdUrl}}/applications/{{.app.metadata.name}}",
+            "short": true
+          }]
+        }]
+
+  - name: on-health-degraded
+    title: App {{.app.metadata.name}} has degraded.
+    body: |
+      :alert: *{{.app.metadata.name}}* has {{.app.status.health.status}}.
+    slack:
+      attachments: |
+        [{
+          "title": "( {{.app.spec.destination.namespace}} ) {{.app.metadata.name}}",
+          "title_link": "{{.context.argocdUrl}}/applications/{{.app.metadata.name}}",
+          "color": "#F63B13",
+          "fields": [{
+            "title": "Sync Status",
+            "value": "{{.app.status.sync.status}}",
+            "short": true
+          },{
+            "title": "Health status",
+            "value": "{{.app.status.health.status}}",
+            "short": true
+          },{
+            "title": "Commit Message",
+            "value": "{{(call .repo.GetCommitMetadata .app.status.sync.revision).Message}}",
+            "short": true
+          },{
+            "title": "Author",
+            "value": "{{(call .repo.GetCommitMetadata .app.status.sync.revision).Author}}",
+            "short": true
+          },{
+            "title": "Details",
+            "value": "{{.context.argocdUrl}}/applications/{{.app.metadata.name}}?operation=true",
+            "short": false
+          }]
+        }]
+
+  - name: on-sync-running
+    body: |
+      `배포(동기화) 진행중..` :hourglass_flowing_sand:
+    slack:
+      attachments: |
+        [{
+          "title": "[ {{.app.spec.destination.namespace}} ] {{.app.metadata.name}}",
+          "title_link": "{{.context.argocdUrl}}/applications/{{.app.metadata.name}}",
+          "color": "#5DADE2",
+          "fields": [{
+            "title": "Currnet sync status",
+            "value": "{{.app.status.sync.status}}",
+            "short": true
+          }, {
+            "title": "Health status",
+            "value": "{{.app.status.health.status}}",
+            "short": true
+          }]
+        }]
+
+  - name: on-sync-failed
+    body: |
+      :red_circle: Sync Failed :red_circle:
+    slack:
+      attachments: |
+        [{
+          "title": "[ {{.app.metadata.name}} ]",
+          "title_link": "{{.context.argocdUrl}}/applications/{{.app.metadata.name}}",
+          "color": "#FA8072",
+          "fields": [{
+            "title": "Sync Status",
+            "value": "{{.app.status.sync.status}}",
+            "short": true
+          },{
+            "title": "Health status",
+            "value": "{{.app.status.health.status}}",
+            "short": true
+          },{
+             "title": "Author",
+             "value": "{{(call .repo.GetCommitMetadata .app.status.sync.revision).Author}}",
+             "short": true
+          },{
+            "title": "Commit Message",
+            "value": "{{(call .repo.GetCommitMetadata .app.status.sync.revision).Message}}",
+            "short": true
+          },{
+            "title": "Details",
+            "value": "{{.context.argocdUrl}}/applications/{{.app.metadata.name}}?operation=true",
+            "short": true
+          }]
+        }]
+
+  - name: on-sync-succeeded
+    body: |
+      :large_blue_circle: Sync Succeeded :large_blue_circle:
+    slack:
+      attachments: |
+        [{
+          "title": "[ {{.app.metadata.name}} ]",
+          "title_link": "{{.context.argocdUrl}}/applications/{{.app.metadata.name}}",
+          "color": "#18be52",
+          "fields": [{
+            "title": "Sync Status",
+            "value": "{{.app.status.sync.status}}",
+            "short": true
+          },{
+            "title": "Health status",
+            "value": "{{.app.status.health.status}}",
+            "short": true
+          },{
+             "title": "Author",
+             "value": "{{(call .repo.GetCommitMetadata .app.status.sync.revision).Author}}",
+             "short": true
+          },{
+            "title": "Commit Message",
+            "value": "{{(call .repo.GetCommitMetadata .app.status.sync.revision).Message}}",
+            "short": true
+          },{
+            "title": "Details",
+            "value": "{{.context.argocdUrl}}/applications/{{.app.metadata.name}}?operation=true",
+            "short": true
+          }]
+        }]
+
+tolerations: []
+
+triggers:
+  ## 동기화 시작을 알림. (진행중일 경우에만 표기)
+  #  - name: on-sync-running
+  #    condition: app.status.health.status == 'Progressing'
+  #    template: on-sync-running
+  #    enabled: true
+  #
+  #    ## 동기화가 완료되고 정상적으로 배포 됨을 확인한다.
+  #  - name: only-healthy
+  #    condition: app.status.sync.status == 'Synced' && app.status.health.status != 'Progressing' && app.status.health.status != 'Degraded'
+  #    template: on-sync-succeeded
+  #    enabled: true
+  #
+  #  - name: on-health-degraded
+  #    template: on-health-degraded
+  #    enabled: true
+  #
+  #  - name: on-sync-failed
+  #    enabled: true
+  #
+  #  - name: on-sync-status-unknown
+  #    enabled: true
+
+  # Or define your custom triggers:
+  #
+  # - name: my-custom-trigger
+  #   condition: app.status.sync.status == 'Unknown'
+  #   template: my-custom-template
+  #
+  # For more information: https://argoproj-labs.github.io/argocd-notifications/triggers_and_templates/
+  # Application has degraded
+  - name: on-health-degraded
+    enabled: true
+
+  # Application syncing has failed
+  - name: on-sync-failed
+    template: on-sync-failed
+    enabled: true
+
+  # Application is being synced
+  #   - name: on-sync-running
+  #     template: on-sync-running
+  #     enabled: true
+  #
+  # Application status is 'Unknown'
+  #   - name: on-sync-status-unknown
+  #     enabled: true
+  #
+  # Application syncing has succeeded
+  - name: on-sync-succeeded
+    template: on-sync-succeeded
+    enabled: true
+
+bots:
+  # For more information: https://argoproj-labs.github.io/argocd-notifications/recipients/bot/
+  slack:
+    # You have to set secret.notifiers.slack.signingSecret
+    enabled: false
+
+    updateStrategy:
+      type: Recreate
+
+    image:
+      repository: argoprojlabs/argocd-notifications
+      tag: v0.7.0
+      pullPolicy: IfNotPresent
+
+    imagePullSecrets: []
+
+    service:
+      annotations: {}
+      port: 80
+      type: LoadBalancer
+
+    serviceAccount:
+      # Specifies whether a service account should be created
+      create: true
+
+      # The name of the service account to use.
+      # If not set and create is true, a name is generated using the fullname template
+      name: argocd-notifications-bot
+
+    resources: {}
+    # limits:
+    #   cpu: 100m
+    #   memory: 128Mi
+    # requests:
+    #   cpu: 100m
+    #   memory: 128Mi
+
+    affinity: {}
+
+    tolerations: []
+
+    nodeSelector:
+      role: management
+

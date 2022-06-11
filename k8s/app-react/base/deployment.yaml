@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web-react
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: overwirte-by-commonLabels
+  template:
+    spec:
+      containers:
+        - name: app
+          image: app
+          resources:
+            requests:
+              memory: 500Mi
+            limits:
+              memory: 500Mi
+          env:
+            - name: RESOLVER
+              value: kube-dns.kube-system

@@ -1,0 +1,34 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+configMapGenerator:
+  - name: redis-configmap
+    literals:
+      - REDIS_HOST_RO=
+      - REDIS_HOST_WRITE=
+      - REDIS_HOST_PORT=
+      - REDIS_HOST_DATABASE=
+      - REDIS_HOST_PASSWORD=
+
+  - name: redis-order-configmap
+    literals:
+      - REDIS_ORDER_MATCHER_RO=
+      - REDIS_ORDER_MATCHER_WRITE=
+      - REDIS_ORDER_MATCHER_PORT=
+      - REDIS_ORDER_MATCHER_DATABASE=
+      - REDIS_ORDER_MATCHER_PASSWORD=
+
+  - name: redis-info-configmap
+    literals:
+      - INFO_REDIS_HOST_RO=
+      - INFO_REDIS_HOST_WRITE=
+      - INFO_REDIS_HOST_PORT=
+      - INFO_REDIS_HOST_DATABASE=
+      - INFO_REDIS_HOST_PASSWORD=
+
+  - name: redis-oauth-configmap
+    literals:
+      - OAUTH_REDIS_HOST_RO=
+      - OAUTH_REDIS_HOST_WRITE=
+      - OAUTH_REDIS_HOST_PORT=
+      - OAUTH_REDIS_HOST_DATABASE=
+      - OAUTH_REDIS_HOST_PASSWORD=

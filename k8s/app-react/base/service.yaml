@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: web-react
+spec:
+  type: NodePort
+  ports:
+    - name : http
+      protocol: TCP
+      port: 80
+      targetPort: 80

@@ -1,0 +1,62 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: not-important
+  labels:
+    tags.datadoghq.com/service: api-gateway
+    tags.datadoghq.com/env: prod
+    tags.datadoghq.com/version: GIT-c7e4a03
+spec:
+  selector:
+    matchLabels:
+      environment: prod
+  template:
+    metadata:
+      labels:
+        tags.datadoghq.com/service: api-gateway
+        tags.datadoghq.com/env: prod
+        tags.datadoghq.com/version: GIT-c7e4a03
+    spec:
+      volumes:
+        - name: shared-volume
+          emptyDir: {}
+      containers:
+        - name: app
+          volumeMounts:
+            - mountPath: /opt/agent
+              name: shared-volume
+              readOnly: true
+          env:
+            - name: JAVA_TOOL_OPTIONS
+              value: |-
+                -javaagent:/opt/agent/apm-agent.jar
+            - name: DD_AGENT_HOST
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.hostIP
+            - name: DD_ENV
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.labels['tags.datadoghq.com/env']
+            - name: DD_SERVICE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.labels['tags.datadoghq.com/service']
+            - name: DD_VERSION
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.labels['tags.datadoghq.com/version']
+            - name: DD_PROFILING_ENABLED
+              value: "true"
+            - name: DD_LOGS_INJECTION
+              value: "true"
+            - name: DD_KAFKA_LEGACY_TRACING_ENABLED
+              value: "false"
+            - name: DD_MESSAGE_BROKER_SPLIT_BY_DESTINATION
+              value: "true"
+      initContainers:
+        - name: init-agent
+          image: ghcr.io/luckypenny/datadog-apm:0.99.0
+          volumeMounts:
+            - mountPath: /shared/volume
+              name: shared-volume

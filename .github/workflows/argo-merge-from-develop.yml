@@ -1,0 +1,52 @@
+name: Work With Argo
+
+on:
+  push:
+    branches:
+      - develop
+jobs:
+  build:
+    runs-on: ubuntu-18.04
+    steps:
+      -
+        uses: actions/checkout@v2
+        with:
+          ref: argo
+      -
+        name: argo_pull_develop
+        run: |
+          git config --global user.email "@luckypenny"
+          git config --global user.name ${GITHUB_ACTOR}
+          git pull origin develop --allow-unrelated-histories --no-rebase --no-edit
+          
+          echo "Kustomize Code Check"
+          kustomize build k8s/_argo/prod 1>/dev/null
+          
+          git push origin argo
+      -
+        name: Set Environment Variable
+        run: |
+          echo ::set-output name=COMMIT_MSG::$(git log --format=%B -n 1 ${{ github.event.after }})
+        id: genv
+      -
+        name: Slack Notification Success
+        if: ${{ success() }}
+        uses: rtCamp/action-slack-notify@v2
+        env:
+          SLACK_USERNAME: "Ci-b0t"
+          SLACK_TITLE: ":airplane: [ DevOps ] Commit Message :airplane:"
+          SLACK_MESSAGE:  "${{ steps.genv.outputs.COMMIT_MSG }}"
+          SLACK_FOOTER: "SLACK FOOTER"
+          SLACK_ICON_EMOJI: github_flip
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+      -
+        name: Slack Notification Failure
+        if: ${{ failure() }}
+        uses: rtCamp/action-slack-notify@v2
+        env:
+          SLACK_USERNAME: "Ci-b0t"
+          SLACK_TITLE: ":airplane: [ DevOps ] Build Failure!! :airplane:"
+          SLACK_COLOR: F63B13
+          SLACK_FOOTER: "SLACK FOOTER"
+          SLACK_ICON_EMOJI: github_flip
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}

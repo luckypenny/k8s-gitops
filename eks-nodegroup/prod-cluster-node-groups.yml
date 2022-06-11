@@ -1,0 +1,68 @@
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: prod-eks
+  region: ap-southeast-1
+
+vpc:
+  cidr: "10.0.0.0/16"
+
+managedNodeGroups:
+  - name: prod-worker
+    privateNetworking: true
+    instanceType: "c5.4xlarge"
+    minSize: 1
+    maxSize: 1
+    desiredCapacity: 1
+    volumeSize: 100
+    ssh:
+      publicKeyPath: ~/.ssh/eks-workernode.pub
+    availabilityZones: ["ap-northeast-2a,ap-northeast-2c"]
+    preBootstrapCommands:
+      - echo "fs.file-max=6578738" >> /etc/sysctl.conf
+      - echo "net.core.netdev_max_backlog=30000" >> /etc/sysctl.conf
+      - echo "net.ipv4.tcp_max_tw_buckets=1800000" >> /etc/sysctl.conf
+      - echo "net.core.rmem_default=253952" >> /etc/sysctl.conf
+      - echo "net.core.wmem_default=253952" >> /etc/sysctl.conf
+      - echo "net.core.rmem_max=16777216" >> /etc/sysctl.conf
+      - echo "net.core.wmem_max=16777216" >> /etc/sysctl.conf
+      - echo "net.ipv4.tcp_rmem=253952 253952 16777216" >> /etc/sysctl.conf
+      - echo "net.ipv4.tcp_wmem=253952 253952 16777216" >> /etc/sysctl.conf
+      - echo "net.ipv4.tcp_mem=373995 498660 16777216" >> /etc/sysctl.conf
+      - yum install strace -y
+      - yum install lsof -y
+      - yum install psmisc -y
+    labels:
+      deploy-env: prod
+      role: worker
+    tags:
+      NodeGroupRole: k8s_worker
+      Env: prod
+    iam:
+      withAddonPolicies:
+        autoScaler: true
+        externalDNS: true
+        certManager: true
+
+  - name: prod-mgmt
+    privateNetworking: true
+    instanceType: "m5.xlarge"
+    minSize: 2
+    maxSize: 2
+    desiredCapacity: 2
+    volumeSize: 50
+    ssh:
+      publicKeyPath: ~/.ssh/eks-workernode.pub
+    availabilityZones: [ "ap-northeast-2a,ap-northeast-2c" ]
+    labels:
+      role: mgmt
+    tags:
+      NodeGroupRole: k8s_worker
+      Role: mgmt
+      Env: prod
+    iam:
+      withAddonPolicies:
+        autoScaler: true
+        externalDNS: true
+        certManager: true

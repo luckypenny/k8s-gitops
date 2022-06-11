@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-gateway
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: api-gateway
+  template:
+    metadata:
+      labels:
+        app: api-gateway
+      annotations:
+        prometheus.io/scrape: 'true'
+        prometheus.io/path: '/actuator/prometheus'
+        prometheus.io/port: '5000'
+    spec:
+      serviceAccountName: api-gateway
+      containers:
+        - name: app
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: "k8s,prod"
+            - name: OPEN_API_URL
+              value: ""
+            - name: "KUBERNETES_NAMESPACE"
+              valueFrom:
+                fieldRef:
+                  fieldPath: "metadata.namespace"
+          resources:
+            requests:
+              memory: 2000Mi
+            limits:
+              memory: 2000Mi
+      nodeSelector:
+        deploy-env: prod
+        role: worker
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - podAffinityTerm:
+                topologyKey: kubernetes.io/hostname
+                labelSelector:
+                  matchLabels:
+                    app: api-gateway
+              weight: 100

@@ -1,0 +1,16 @@
+name: Build
+on:
+  push:
+    branches:
+      - ubuntu-jdk11
+jobs:
+  build:
+    runs-on: ubuntu-18.04
+    steps:
+      - uses: actions/checkout@v2
+      - name: ubuntu-jdk11 docker build
+        run: |
+          echo "${{ secrets.GIT_SECRET }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+          docker build -f _docker-files/ubuntu-jdk.Dockerfile -t ghcr.io/luckypenny/ubuntu-jdk11:1.0 . 
+          docker push ghcr.io/luckypenny/ubuntu-jdk11:1.0
+          docker images

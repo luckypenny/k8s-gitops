@@ -1,0 +1,15 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+configMapGenerator:
+  - name: kafka-configmap
+    literals:
+      - BROKER_HOSTS=
+      - SCHEMA_REGISTRY_URL=
+
+      # Cluster Api Key & Secret
+      - CLUSTER_API_KEY=
+      - CLUSTER_API_SECRET=
+
+      # Schema Registry Api Key & Secret
+      - SCHEMA_REGISTRY_API_KEY=
+      - SCHEMA_REGISTRY_API_SECRET=

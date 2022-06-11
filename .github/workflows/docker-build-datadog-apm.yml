@@ -1,0 +1,16 @@
+name: Build
+on:
+  push:
+    branches:
+      - build-docker
+jobs:
+  build:
+    runs-on: ubuntu-18.04
+    steps:
+      - uses: actions/checkout@v2
+      - name: datadog apm docker build
+        run: |
+          echo "${{ secrets.GIT_SECRET }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+          docker build -f _docker-files/datadog-apm.Dockerfile -t ghcr.io/luckypenny/datadog-apm:0.99.0 . 
+          docker push ghcr.io/luckypenny/datadog-apm:0.99.0
+          docker images

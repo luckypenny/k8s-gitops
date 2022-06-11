@@ -1,0 +1,18 @@
+namespace: prod
+commonLabels:
+  environment: prod
+
+resources:
+## Ingress (public & private)
+  - ingress-external.yml
+  - ingress-internal.yml
+
+## Configmaps & Secrets
+  - ../../_resources/aurora-mysql/prod
+  - ../../_resources/kafka/prod
+  - ../../_resources/redis/prod
+
+## Deployments
+  - ../../app-nodejs/overlays/prod
+  - ../../app-react/overlays/prod
+  - ../../app-springboot/overlays/prod
