@@ -1,6 +1,6 @@
 # GitOps With k8s, ArgoCD, GithubAction
 ## 내용
-- k8s 클러스터에 Argo CD와 깃헙 액션을 사용하여 GitOps를 구현하는 샘플 예제 입니다. 
+- k8s 클러스터에 Argo CD와 깃헙 액션을 사용하여 GitOps를 구현하는 샘플 템플릿 입니다. 
 - kustomize로 k8s에 사용되는 사용자 앱들을 정의하고 있습니다. (app-nodejs, app-react, app-react)
 - 일부 앱에는 DataDog APM Agent를 설정하는 예제를 포함하고 있습니다.
 - EKS 클러스터 노드 운영 관련 스크릡트
