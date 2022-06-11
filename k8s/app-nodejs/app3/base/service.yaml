@@ -1,10 +1,10 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: app-nodejs
+  name: nodejs-app3
 spec:
   selector:
-    app: app-nodejs
+    app: nodejs-app3
   type: NodePort
   ports:
     - name: http

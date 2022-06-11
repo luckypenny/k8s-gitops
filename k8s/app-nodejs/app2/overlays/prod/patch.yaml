@@ -29,7 +29,7 @@ spec:
                 topologyKey: kubernetes.io/hostname
                 labelSelector:
                   matchLabels:
-                    app: app-nodejs
+                    app: nodejs-app2
               weight: 100
   selector:
     matchLabels:

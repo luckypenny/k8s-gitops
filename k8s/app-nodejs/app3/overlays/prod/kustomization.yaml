@@ -1,0 +1,18 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+- ../../base
+patches:
+  - path: patch.yaml
+    target:
+      kind: Deployment
+images:
+- name: app
+  newName: ghcr.io/luckypenny/k8s-argo-github-action/nodejs-app3
+  newTag: GIT-018aab4
+
+secretGenerator:
+  - name: app-secret
+    literals:
+      - RDB_USERNAME=
+      - RDB_PASSWORD=

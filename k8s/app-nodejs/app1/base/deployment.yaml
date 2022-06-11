@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nodejs-app1
+  labels:
+    service: luckypenny
+    app: nodejs-app1
+spec:
+  replicas: 1
+  minReadySeconds: 20
+  selector:
+    matchLabels:
+      app: nodejs-app1
+  template:
+    metadata:
+      labels:
+        app: nodejs-app1
+    spec:
+      containers:
+        - name: app
+          image: app
+          resources:
+            requests:
+              memory: 128Mi
+            limits:
+              memory: 128Mi
+          envFrom:
+            - configMapRef:
+                name: redis-info-configmap
+            - configMapRef:
+                name: kafka-configmap
+            - configMapRef:
+                name: rdb-configmap
+            - secretRef:
+                name: app-secret

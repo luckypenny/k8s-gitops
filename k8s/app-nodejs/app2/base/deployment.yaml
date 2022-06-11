@@ -1,20 +1,20 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: app-nodejs
+  name: nodejs-app2
   labels:
     service: luckypenny
-    app: app-nodejs
+    app: nodejs-app2
 spec:
   replicas: 1
   minReadySeconds: 20
   selector:
     matchLabels:
-      app: app-nodejs
+      app: nodejs-app2
   template:
     metadata:
       labels:
-        app: app-nodejs
+        app: nodejs-app2
     spec:
       containers:
         - name: app
